@@ -3,7 +3,7 @@ import Image from "next/image";
 import style from "./Apm.module.css";
 import 'react-toastify/dist/ReactToastify.css';
 import {getActiveRuns, getAgentRuns, getAllAgents, getToolsUsage, getMetrics} from "@/pages/api/DashboardService";
-import {formatNumber, formatTime} from "@/utils/utils";
+import {formatNumber, formatTime, returnToolkitIcon} from "@/utils/utils";
 import {BarGraph} from "./BarGraph.js";
 import {WidthProvider, Responsive} from 'react-grid-layout';
 import 'react-grid-layout/css/styles.css';
@@ -25,6 +25,8 @@ export default function ApmDashboard() {
   const [activeRuns, setActiveRuns] = useState([]);
   const [selectedAgentDetails, setSelectedAgentDetails] = useState(null);
   const [toolsUsed, setToolsUsed] = useState([]);
+  const [showToolTip, setShowToolTip] = useState(false);
+  const [toolTipIndex, setToolTipIndex] = useState(-1);
   const initialLayout = [
     {i: 'total_agents', x: 0, y: 0, w: 3, h: 1.5},
     {i: 'total_tokens', x: 3, y: 0, w: 3, h: 1.5},
@@ -118,6 +120,11 @@ export default function ApmDashboard() {
       handleSelectedAgent(lastAgent.agent_id, lastAgent.name);
     }
   }, [allAgents, selectedAgent, handleSelectedAgent]);
+
+  const setToolTipState = (state, index) => {
+    setShowToolTip(state)
+    setToolTipIndex(index)
+  }
 
   return (
     <div className={style.apm_dashboard_container}>
@@ -221,7 +228,11 @@ export default function ApmDashboard() {
                     <tbody>
                     {toolsUsed.map((tool, index) => (
                       <tr key={index}>
-                        <td className="table_data" style={{width: '56%'}}>{tool.tool_name}</td>
+                        <td className="table_data" style={{width: '100%', display: 'flex', alignItems: 'center'}}>
+                          <Image className="image_class" style={{background: 'black'}} width={20} height={20}
+                                 src={returnToolkitIcon(tool.toolkit)} alt="tool-icon"/>
+                          <span>{tool.tool_name}</span>
+                        </td>
                         <td className="table_data text_align_right" style={{width: '22%'}}>{tool.unique_agents}</td>
                         <td className="table_data text_align_right" style={{width: '22%'}}>{tool.total_usage}</td>
                       </tr>
@@ -297,10 +308,16 @@ export default function ApmDashboard() {
                             <div key={index} className="tools_used">{tool}</div>
                           ))}
                           {run.tools_used && run.tools_used.length > 3 &&
-                            <div className="tools_used_tooltip"
-                                 data-tooltip={run.tools_used.slice(3).join(", ")}>
-                              +{run.tools_used.length - 3}
-                            </div>
+                              <div style={{display:'inline-flex'}}>
+                                {(showToolTip && toolTipIndex === i) && <div className="tools_used_tooltip">
+                                  {run.tools_used.slice(3).map((tool,index) =>
+                                      <div key={index} className="tools_used">{tool}</div>
+                                  )}
+                                </div>}
+                                <div className="tools_used cursor_pointer" onMouseEnter={() => setToolTipState(true,i)} onMouseLeave={() => setToolTipState(false,i)}>
+                                  +{run.tools_used.length - 3}
+                                </div>
+                              </div>
                           }
                         </td>
                         <td className="table_data text_align_right" style={{width: '10%'}}>{run.total_calls}</td>

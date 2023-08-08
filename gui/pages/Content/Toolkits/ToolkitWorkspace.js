@@ -26,15 +26,14 @@ export default function ToolkitWorkspace({env, toolkitDetails, internalId}) {
 
   function getGoogleToken(client_data) {
     var redirect_uri = "";
-    if (env == "PROD"){
+    if (env == "PROD") {
       redirect_uri = 'https://app.superagi.com/api/google/oauth-tokens';
-    }
-    else {
+    } else {
       redirect_uri = "http://localhost:3000/api/google/oauth-tokens";
     }
     const client_id = client_data.client_id
     const scope = 'https://www.googleapis.com/auth/calendar';
-    window.location.href = `https://accounts.google.com/o/oauth2/v2/auth?client_id=${client_id}&redirect_uri=${redirect_uri}&access_type=offline&response_type=code&scope=${scope}`;
+    window.location.href = `https://accounts.google.com/o/oauth2/v2/auth?client_id=${client_id}&redirect_uri=${redirect_uri}&access_type=offline&response_type=code&scope=${scope}&state=${toolkitDetails.id}`;
   }
 
   function getTwitterToken(oauth_data) {
@@ -53,7 +52,7 @@ export default function ToolkitWorkspace({env, toolkitDetails, internalId}) {
           const apiConfigs = response.data || [];
           setApiConfigs(localStoredConfigs ? JSON.parse(localStoredConfigs) : apiConfigs);
         })
-        .catch((errPor) => {
+        .catch((error) => {
           console.log('Error fetching API data:', error);
         })
         .finally(() => {
@@ -177,11 +176,11 @@ export default function ToolkitWorkspace({env, toolkitDetails, internalId}) {
             {apiConfigs.length > 0 && (
               <div style={{marginLeft: 'auto', display: 'flex', justifyContent: 'space-between'}}>
                 <div>{authenticateToolkits.includes(toolkitDetails.name) &&
-                  <button style={{width: 'fit-content'}} className={styles.primary_button}
+                  <button style={{width: 'fit-content'}} className="primary_button"
                           onClick={() => handleAuthenticateClick(toolkitDetails.name)}>Authenticate Tool</button>
                 }</div>
                 <div style={{display: 'flex', justifyContent: 'flex-end'}}>
-                  <button className={styles.primary_button} onClick={handleUpdateChanges}>Update Changes</button>
+                  <button className="primary_button" onClick={handleUpdateChanges}>Update Changes</button>
                 </div>
               </div>)}
           </div>}
@@ -202,7 +201,6 @@ export default function ToolkitWorkspace({env, toolkitDetails, internalId}) {
     <ToastContainer/>
   </>);
 }
-
 
 
 
